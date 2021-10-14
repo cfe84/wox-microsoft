@@ -1,0 +1,12 @@
+{
+  "ID": "e082c7ac-6545-4711-a759-755e06833d07",
+  "ActionKeyword": "teams",
+  "Name": "Teams",
+  "Description": "Teams plugin for Wox",
+  "Author": "cfe84",
+  "Version": "1.0.0",
+  "Language": "executable",
+  "Website": "http://teams.microsoft.com",
+  "IcoPath": "images\\teams.png",
+  "ExecuteFileName": "run.bat"
+}
