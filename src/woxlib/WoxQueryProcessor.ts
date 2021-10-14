@@ -3,7 +3,7 @@ import { JsonRPCAction } from "./JsonRPCAction";
 import { Logger } from "./Logger";
 
 export class WoxQueryProcessor {
-  constructor(private handler: IWoxQueryHandler, private logger: Logger) {}
+  constructor(private handler: IWoxQueryHandler, private logger: Logger) { }
 
   async processFromCommandLineAsync(argv: string[]) {
     const request: JsonRPCAction = JSON.parse(argv[2]);

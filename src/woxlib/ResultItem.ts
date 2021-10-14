@@ -4,5 +4,5 @@ export interface ResultItem {
   Title: string;
   Subtitle: string;
   IcoPath: string;
-  JsonRPCAction: JsonRPCAction;
+  JsonRPCAction?: JsonRPCAction;
 }
