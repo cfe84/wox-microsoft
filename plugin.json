@@ -1,7 +1,7 @@
 {
-  "ID": "e082c7ac-6545-4711-a759-755e06833d07",
-  "ActionKeyword": "teams",
-  "Name": "Teams",
+  "ID": "3e783005-7484-47ca-aa82-d03a94009257",
+  "ActionKeyword": "*",
+  "Name": "MS Graph",
   "Description": "Microsoft graph plugin for Wox",
   "Author": "cfe84",
   "Version": "1.0.0",
