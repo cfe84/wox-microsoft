@@ -115,7 +115,6 @@ export class Authentication {
           done("no accounts", null)
         }
         account = accounts[0]
-        this.deps.configurationStore.UserId = account.homeAccountId
       }
       const response = await this._msalClient.acquireTokenSilent({
         scopes: OAUTH_SCOPES,

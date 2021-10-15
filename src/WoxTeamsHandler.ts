@@ -10,6 +10,7 @@ import { UserInfoHandler } from "./handlers/UserInfoHandler";
 import { Graph } from "./Graph";
 import { CalendarHandler } from "./handlers/CalendarHandler";
 import { ChatHandler } from "./handlers/ChatHandler";
+import { PersonHandler } from "./handlers/PersonHandler";
 
 export interface WoxTeamsHandlerDeps {
   logger: Logger,
@@ -27,7 +28,8 @@ export class WoxTeamsHandler implements IWoxQueryHandler {
       this.authenticationHandler,
       new UserInfoHandler(deps),
       new CalendarHandler(deps),
-      new ChatHandler(deps)
+      new ChatHandler(deps),
+      new PersonHandler(deps)
     ]
   }
 

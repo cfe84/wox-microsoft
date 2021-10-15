@@ -41,7 +41,7 @@ export class ChatHandler implements IHandler {
   private async getMeetingTarget(name: string): Promise<ChatTarget[]> {
     const meetings = await this.deps.graph.searchEvents(name)
     return meetings.map(meeting => ({
-      id: meeting.id,
+      id: meeting.threadId,
       isMeeting: true,
       name: meeting.subject
     }))
@@ -50,23 +50,23 @@ export class ChatHandler implements IHandler {
     const meetings = await this.deps.graph.getNextMeetings()
     this.deps.logger.log(`Found ${meetings.length}`)
     return meetings.map(meeting => ({
-      id: meeting.id,
+      id: meeting.threadId,
       isMeeting: true,
       name: meeting.subject
     }))
   }
 
   async handleSearch(sentence: string): Promise<ResultItem[]> {
-    const regex = /(?:(?:send|write)(?: (?:a )?message)?(?: to)?\s)(meeting\s+)?([^:]+):\s?(.+)/ig
+    const regex = /(?:(?:send|write|message)(?: (?:a )?message)?(?: to)?\s)(meeting\s+)?([^:]+):\s?(.+)/ig
     const res = regex.exec(sentence)
     if (!res) {
       return []
     }
 
     const name = res[2]
-    const isMeeting = !!res[1]
     const message = res[3]
     const isNextMeeting = name === "next meeting"
+    const isMeeting = isNextMeeting || !!res[1]
     this.deps.logger.log(`Search message: ${name}, ${isMeeting}, ${isNextMeeting}, ${message}`)
     let target: ChatTarget[]
     if (isNextMeeting) {
@@ -94,7 +94,7 @@ export class ChatHandler implements IHandler {
   async sendChat(id: string, message: string, type: string) {
     let chatId = id
     if (type === "oneToOne") {
-      const chatId = await this.deps.graph.createChat(id)
+      chatId = await this.deps.graph.createChat(id)
     }
     await this.deps.graph.sendMessage(chatId, message)
   }

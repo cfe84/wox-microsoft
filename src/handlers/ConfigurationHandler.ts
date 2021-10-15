@@ -56,8 +56,8 @@ export class ConfigurationHandler implements IHandler {
         parameters: [],
       },
       Subtitle: isAuthenticated ? "Log in again" : "You need to log in first",
-      Title: "Log in",
-      Score: 1
+      Title: "Log in to Microsoft",
+      Score: 200
     };
     const logOutAction = {
       IcoPath: consts.icons.microsoft,
@@ -66,8 +66,8 @@ export class ConfigurationHandler implements IHandler {
         parameters: [],
       },
       Subtitle: "Log out from your account",
-      Title: "Log out",
-      Score: 1
+      Title: "Log out from Microsoft",
+      Score: 200
     };
     const actions = []
     if (isAuthenticated && (commandIsMicrosoft || commandIsLogout)) {

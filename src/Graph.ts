@@ -23,6 +23,7 @@ export interface SearchEventResult {
   end: Date,
   webUrl: string,
   joinUrl: string
+  threadId: string
 }
 
 export interface SearchPersonResult {
@@ -82,13 +83,24 @@ export class Graph {
     {
       const start = new Date(event.start.dateTime + "Z")
       const end = new Date(event.end.dateTime + "Z")
+      const threadIdRegex = /.+\/meetup-join\/([^/]+)\//i
+      let threadId = ""
+      const res = threadIdRegex.exec(event.onlineMeeting?.joinUrl || "")
+      if (res) {
+        threadId = res[1]
+        if (threadId) {
+          // threadId = decodeURIComponent(threadId)
+          this.deps.logger.log(threadId)
+        }
+      }
       return {
         id: event.id,
         start,
         end,
         subject: event.subject,
         joinUrl: event.onlineMeeting?.joinUrl || "",
-        webUrl: event.webLink || ""
+        webUrl: event.webLink || "",
+        threadId
       }
     }
   }
@@ -110,7 +122,6 @@ export class Graph {
       await Promise.all(recurringEvents.map(async (event: any) => {
         const nextInstance = await this.getNextInRec(event.id)
         if (nextInstance) {
-
           result.push(this.mapToSearchEventResult(nextInstance))
         } else {
           result.push(this.mapToSearchEventResult(event))
@@ -133,6 +144,7 @@ export class Graph {
     const result: SearchEventResult[] = []
     const from = new Date()
     const to = new Date()
+    from.setHours(from.getHours() - 1)
     to.setDate(to.getDate() + 7)
 
     try {
@@ -197,12 +209,14 @@ export class Graph {
     const res = await this.client.api("/chats").post(chat)
     return res.id
   }
+
   async sendMessage(chatId: string, message: string): Promise<string> {
     const msg = {
       body: {
         content: message
       }
     };
+    this.deps.logger.log(`[graph.sendMessage] Sending to /chats/${chatId}/messages`)
     const res = await this.client.api(`/chats/${chatId}/messages`).post(msg)
     return res.id
   }
