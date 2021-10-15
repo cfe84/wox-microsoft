@@ -60,7 +60,7 @@ export class Graph {
     try {
       const events = await this.client
         .api("/me/events")
-        .filter(`contains(subject, '${searchTerm}'`)
+        .filter(`contains(subject, '${searchTerm}')`)
         .select(["subject", "start", "end", "onlineMeeting", "webLink"])
         .orderby("start/dateTime")
         .top(10)

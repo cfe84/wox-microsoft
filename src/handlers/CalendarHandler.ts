@@ -37,6 +37,35 @@ export class CalendarHandler implements IHandler {
     }
   }
 
+  private formatDateSpan(from: Date, to: Date): string {
+    const isSameDay = (d1: Date, d2: Date): boolean =>
+      d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth()
+
+    const fromDateFormat: Intl.DateTimeFormatOptions = {
+      hour: "numeric",
+      minute: "numeric"
+    }
+    let toDateFormat: Intl.DateTimeFormatOptions = {
+      hour: "numeric",
+      minute: "numeric"
+    }
+    const today = new Date()
+    if (from.getFullYear() !== today.getFullYear()) {
+      fromDateFormat.year = "numeric"
+    }
+    if (!isSameDay(from, today)) {
+      fromDateFormat.day = "numeric"
+      fromDateFormat.weekday = "long"
+      fromDateFormat.month = "short"
+    }
+    if (!isSameDay(from, to)) {
+      toDateFormat = fromDateFormat
+    }
+    const fromStr = from.toLocaleString("en-us", fromDateFormat)
+    const toStr = to.toLocaleString("en-us", toDateFormat)
+    return `From ${fromStr} to ${toStr}`
+  }
+
   async handleSearchAsync(query: string): Promise<ResultItem[]> {
     const isJoin = query.startsWith(COMMAND_JOIN + " ")
     let isOpen = query.startsWith(COMMAND_OPEN + " ")
@@ -52,9 +81,10 @@ export class CalendarHandler implements IHandler {
         .filter(event => !!event)
         .map((event, index) => {
           const joinEvent = isJoin && event.joinUrl
+
           return {
             IcoPath: consts.icons.calendar,
-            Subtitle: `From ${event.start} to ${event.end}`,
+            Subtitle: this.formatDateSpan(event.start, event.end),
             Title: (joinEvent ? "Join " : "Open ") + event.subject,
             Score: 100 - index,
             JsonRPCAction: {

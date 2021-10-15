@@ -4,3 +4,4 @@ tmp
 *.wox
 debug.txt
 .env
+teams-config.json
