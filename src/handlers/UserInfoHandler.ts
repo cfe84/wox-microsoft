@@ -24,6 +24,7 @@ export class UserInfoHandler implements IHandler {
   }
 
   async processQueryAsync(rpcAction: JsonRPCAction): Promise<ResultItem[]> {
+    return []
     const user = await this.deps.graph.getUserInfo()
     const currentUser: ResultItem = {
       IcoPath: consts.icons.microsoft,

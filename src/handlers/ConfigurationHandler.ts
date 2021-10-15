@@ -44,6 +44,10 @@ export class ConfigurationHandler implements IHandler {
   }
 
   async processQueryAsync(rpcAction: JsonRPCAction): Promise<ResultItem[]> {
+    const command = rpcAction.parameters[0]
+    const commandIsMicrosoft = command && (command.startsWith("microsoft") || command.startsWith("msft"))
+    const commandIsLogIn = command && ("login".startsWith(command.replace(/\s/g, "")))
+    const commandIsLogout = command && ("logout".startsWith(command.replace(/\s/g, "")))
     const isAuthenticated = this.deps.configurationStore.isAuthenticated()
     const logInAction = {
       IcoPath: consts.icons.microsoft,
@@ -65,9 +69,12 @@ export class ConfigurationHandler implements IHandler {
       Title: "Log out",
       Score: 1
     };
-    const actions = [logInAction]
-    if (isAuthenticated) {
+    const actions = []
+    if (isAuthenticated && (commandIsMicrosoft || commandIsLogout)) {
       actions.push(logOutAction)
+    }
+    if (!isAuthenticated && (commandIsMicrosoft || commandIsLogIn)) {
+      actions.push(logInAction)
     }
     return actions
   }
