@@ -17,6 +17,7 @@ export interface GetUserInfoResults {
 }
 
 export interface SearchEventResult {
+  id: string,
   subject: string,
   start: Date,
   end: Date,
@@ -70,7 +71,6 @@ export class Graph {
         .select(["subject", "start", "end", "onlineMeeting", "webLink"])
         .top(1)
         .get()
-      this.deps.logger.log(JSON.stringify(events))
       return events.value[0]
     } catch (er) {
       this.deps.logger.log(`[graph.getNextInRec]: Error while querying: ${er}`)
@@ -83,6 +83,7 @@ export class Graph {
       const start = new Date(event.start.dateTime + "Z")
       const end = new Date(event.end.dateTime + "Z")
       return {
+        id: event.id,
         start,
         end,
         subject: event.subject,
@@ -123,7 +124,12 @@ export class Graph {
     return result
   }
 
+  private _nextMeetingsCache: SearchEventResult[] | null = null
+
   async getNextMeetings(): Promise<SearchEventResult[]> {
+    if (this._nextMeetingsCache) {
+      return this._nextMeetingsCache
+    }
     const result: SearchEventResult[] = []
     const from = new Date()
     const to = new Date()
@@ -146,6 +152,7 @@ export class Graph {
       this.deps.logger.log(`[graph.next meeting]: Error while querying: ${er}`)
     }
     result.sort((a, b) => a.start.getTime() - b.start.getTime())
+    this._nextMeetingsCache = result
     return result
   }
 

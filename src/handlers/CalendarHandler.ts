@@ -92,7 +92,7 @@ export class CalendarHandler implements IHandler {
           const joinEvent = isJoin && event.joinUrl
 
           return {
-            IcoPath: consts.icons.calendar,
+            IcoPath: joinEvent ? consts.icons.teams : consts.icons.calendar,
             Subtitle: this.formatDateSpan(event.start, event.end),
             Title: (joinEvent ? "Join " : "Open ") + event.subject,
             Score: 100 - index,
