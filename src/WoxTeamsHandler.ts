@@ -8,6 +8,7 @@ import { Authentication } from "./Authentication";
 import { IHandler } from "./IHandler";
 import { UserInfoHandler } from "./handlers/UserInfoHandler";
 import { Graph } from "./Graph";
+import { CalendarHandler } from "./handlers/CalendarHandler";
 
 export interface WoxTeamsHandlerDeps {
   logger: Logger,
@@ -23,7 +24,8 @@ export class WoxTeamsHandler implements IWoxQueryHandler {
     this.authenticationHandler = new ConfigurationHandler(deps)
     this.handlers = [
       this.authenticationHandler,
-      new UserInfoHandler(deps)
+      new UserInfoHandler(deps),
+      new CalendarHandler(deps)
     ]
   }
 
@@ -35,15 +37,27 @@ export class WoxTeamsHandler implements IWoxQueryHandler {
 
     if (rpcAction.method === "query") {
       const results = await Promise.all(handlers
-        .map(handler => handler.processQueryAsync(rpcAction)))
+        .map(handler => {
+          try {
+            return handler.processQueryAsync(rpcAction)
+          }
+          catch (error) {
+            this.deps.logger.log(`Error in execution handler ${handler.settings.prefix}: ${error}`)
+            return []
+          }
+        }))
       const aggregatedResults = results.flat()
       return {
         result: aggregatedResults,
       };
-    } else if (rpcAction.method === "copyToCliboard") {
-      this.deps.logger.log(rpcAction.parameters[0]);
     } else {
-      this.deps.logger.log(JSON.stringify(rpcAction));
+      this.deps.logger.log(`[handler.processAsync] this is a command ${rpcAction.method}`)
+      const handler = this.handlers.filter(handler => rpcAction.method.startsWith(handler.settings.prefix))
+      const results = await Promise.all(handler.map(h => h.processCommandAsync(rpcAction)))
+      const result = results.flat()
+      return {
+        result
+      }
     }
     return {
       result: [],

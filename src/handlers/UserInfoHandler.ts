@@ -24,14 +24,14 @@ export class UserInfoHandler implements IHandler {
   async processQueryAsync(rpcAction: JsonRPCAction): Promise<ResultItem[]> {
     const user = await this.deps.graph.getUserInfo()
     const currentUser: ResultItem = {
-      IcoPath: consts.icons.teams,
-      Subtitle: user,
-      Title: user
+      IcoPath: consts.icons.microsoft,
+      Subtitle: user.userPrincipal,
+      Title: user.displayName
     }
     return [currentUser]
   }
 
-  processCommandAsync(rpcAction: JsonRPCAction): Promise<Result> {
+  processCommandAsync(rpcAction: JsonRPCAction): Promise<ResultItem[]> {
     throw new Error("Method not implemented.");
   }
 

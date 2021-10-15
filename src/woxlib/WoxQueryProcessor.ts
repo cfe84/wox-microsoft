@@ -11,7 +11,6 @@ export class WoxQueryProcessor {
     if (response && response.result) {
       const serializedResponse = JSON.stringify(response);
       console.log(serializedResponse);
-      this.logger.log(serializedResponse);
     }
   }
 }

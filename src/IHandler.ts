@@ -11,5 +11,5 @@ export interface IHandlerSettings {
 export interface IHandler {
   get settings(): IHandlerSettings
   processQueryAsync(rpcAction: JsonRPCAction): Promise<ResultItem[]>
-  processCommandAsync(rpcAction: JsonRPCAction): Promise<Result>
+  processCommandAsync(rpcAction: JsonRPCAction): Promise<ResultItem[]>
 }

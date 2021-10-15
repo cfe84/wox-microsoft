@@ -11,7 +11,8 @@ interface OAuthConfig {
 }
 
 interface ConfigFile {
-  oauthCachedData?: string
+  oauthCachedData?: string,
+  userId?: string
 }
 
 export class ConfigurationStore implements ICachePlugin {
@@ -55,8 +56,23 @@ export class ConfigurationStore implements ICachePlugin {
     this.saveConfigFile()
   }
 
+  get UserId(): string | undefined {
+    return this.config.userId
+  }
+
+  set UserId(val: string | undefined) {
+    this.config.userId = val
+    this.saveConfigFile()
+  }
+
   isAuthenticated(): boolean {
     return this.config.oauthCachedData !== undefined
+  }
+
+  eraseCache() {
+    this.config.oauthCachedData = undefined
+    this.config.userId = undefined
+    this.saveConfigFile()
   }
 
   eraseConfiguration() {
