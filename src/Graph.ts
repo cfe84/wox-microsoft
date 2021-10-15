@@ -56,16 +56,33 @@ export class Graph {
     }
   }
 
-  async searchEvents(searchTerm: string): Promise<SearchEventResult[]> {
+  async getNextInRec(eventId: string): Promise<any | undefined> {
+    const from = new Date()
+    const to = new Date()
+    to.setDate(to.getDate() + 90)
     try {
       const events = await this.client
-        .api("/me/events")
-        .filter(`contains(subject, '${searchTerm}')`)
+        .api(`/me/events/${eventId}/instances`)
+        .query({
+          StartDateTime: from.toISOString(),
+          EndDateTime: to.toISOString()
+        })
         .select(["subject", "start", "end", "onlineMeeting", "webLink"])
-        .orderby("start/dateTime")
-        .top(10)
+        .top(1)
         .get()
-      return events.value.map((event: any) => {
+      this.deps.logger.log(JSON.stringify(events))
+      return events.value[0]
+    } catch (er) {
+      this.deps.logger.log(`[graph.getNextInRec]: Error while querying: ${er}`)
+      return undefined
+    }
+  }
+
+  async searchEvents(searchTerm: string): Promise<SearchEventResult[]> {
+    const result: SearchEventResult[] = []
+
+    const mapToSearchEventResult = (event: any) => {
+      {
         const start = new Date(event.start.dateTime + "Z")
         const end = new Date(event.end.dateTime + "Z")
         return {
@@ -75,11 +92,34 @@ export class Graph {
           joinUrl: event.onlineMeeting?.joinUrl || "",
           webUrl: event.webLink || ""
         }
-      })
+      }
+    }
+    try {
+      const baseEvents = await this.client
+        .api("/me/events")
+        .filter(`contains(subject, '${searchTerm}')`)
+        .select(["id", "subject", "start", "end", "onlineMeeting", "webLink", "recurrence"])
+        .orderby("start/dateTime")
+        .top(10)
+        .get()
+      const recurringEvents = baseEvents.value.filter((event: any) => event.recurrence)
+      const nonRecurringEvents = baseEvents.value.filter((event: any) => !event.recurrence)
+
+      await Promise.all(recurringEvents.map(async (event: any) => {
+        const nextInstance = await this.getNextInRec(event.id)
+        if (nextInstance) {
+
+          result.push(mapToSearchEventResult(nextInstance))
+        } else {
+          result.push(mapToSearchEventResult(event))
+        }
+      }))
+      nonRecurringEvents.forEach((event: any) => result.push(mapToSearchEventResult(event)))
     } catch (er) {
       this.deps.logger.log(`[graph.searchEvents]: Error while querying: ${er}`)
-      return []
     }
+    result.sort((a, b) => a.start.getTime() - b.start.getTime())
+    return result
   }
 
   async searchPerson(name: string): Promise<SearchPersonResult[]> {
