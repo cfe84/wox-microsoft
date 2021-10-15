@@ -66,7 +66,7 @@ export class CalendarHandler implements IHandler {
     return `From ${fromStr} to ${toStr}`
   }
 
-  async handleSearchAsync(query: string): Promise<ResultItem[]> {
+  private getCommand(query: string): { isJoin: boolean, isOpen: boolean, query: string } {
     const isJoin = query.startsWith(COMMAND_JOIN + " ")
     let isOpen = query.startsWith(COMMAND_OPEN + " ")
     if (isJoin) {
@@ -75,6 +75,15 @@ export class CalendarHandler implements IHandler {
     if (isOpen) {
       query = query.substr(COMMAND_OPEN.length + 1)
     }
+    return {
+      isJoin,
+      isOpen,
+      query
+    }
+  }
+
+  async handleSearchAsync(initialQuery: string): Promise<ResultItem[]> {
+    const { isJoin, isOpen, query } = this.getCommand(initialQuery)
     try {
       const matchingEvents = await this.deps.graph.searchEvents(query)
       return matchingEvents
@@ -100,6 +109,34 @@ export class CalendarHandler implements IHandler {
     }
   }
 
+  async handleNextMeeting(initialQuery: string): Promise<ResultItem[]> {
+    const { isJoin, isOpen, query } = this.getCommand(initialQuery)
+
+    try {
+      const nextEvents = await this.deps.graph.getNextMeetings()
+      return nextEvents
+        .filter(event => !!event)
+        .map((event, index) => {
+          const joinEvent = isJoin && event.joinUrl
+
+          return {
+            IcoPath: consts.icons.calendar,
+            Subtitle: this.formatDateSpan(event.start, event.end),
+            Title: (joinEvent ? "Join " : "Open ") + event.subject,
+            Score: 100 - index,
+            JsonRPCAction: {
+              method: METHOD_OPEN_EVENT,
+              parameters: [toBase64((joinEvent ? event.joinUrl : event.webUrl) || "")]
+            },
+          }
+        }
+        )
+    } catch (error) {
+      this.deps.logger.log(`[calendar handler.nextMeeting]: error retrieving events: ${error}`)
+      return []
+    }
+  }
+
   handleOpenEventCommand(rpcAction: JsonRPCAction): ResultItem[] {
     const url = fromBase64(rpcAction.parameters[0])
     open(url)
@@ -110,8 +147,14 @@ export class CalendarHandler implements IHandler {
     if (rpcAction.parameters
       && rpcAction.parameters.length > 0
       && rpcAction.parameters[0].trim().length > 0) {
-      const searchResults = this.handleSearchAsync(rpcAction.parameters[0].trim())
-      return searchResults
+      const command = rpcAction.parameters[0].trim()
+      const isNextMeeting = command.indexOf("next meeting") >= 0
+      if (isNextMeeting) {
+        return this.handleNextMeeting(command)
+      }
+      else {
+        return this.handleSearchAsync(command)
+      }
     }
     return []
   }

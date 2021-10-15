@@ -78,22 +78,23 @@ export class Graph {
     }
   }
 
+  private mapToSearchEventResult(event: any): SearchEventResult {
+    {
+      const start = new Date(event.start.dateTime + "Z")
+      const end = new Date(event.end.dateTime + "Z")
+      return {
+        start,
+        end,
+        subject: event.subject,
+        joinUrl: event.onlineMeeting?.joinUrl || "",
+        webUrl: event.webLink || ""
+      }
+    }
+  }
+
   async searchEvents(searchTerm: string): Promise<SearchEventResult[]> {
     const result: SearchEventResult[] = []
 
-    const mapToSearchEventResult = (event: any) => {
-      {
-        const start = new Date(event.start.dateTime + "Z")
-        const end = new Date(event.end.dateTime + "Z")
-        return {
-          start,
-          end,
-          subject: event.subject,
-          joinUrl: event.onlineMeeting?.joinUrl || "",
-          webUrl: event.webLink || ""
-        }
-      }
-    }
     try {
       const baseEvents = await this.client
         .api("/me/events")
@@ -109,14 +110,40 @@ export class Graph {
         const nextInstance = await this.getNextInRec(event.id)
         if (nextInstance) {
 
-          result.push(mapToSearchEventResult(nextInstance))
+          result.push(this.mapToSearchEventResult(nextInstance))
         } else {
-          result.push(mapToSearchEventResult(event))
+          result.push(this.mapToSearchEventResult(event))
         }
       }))
-      nonRecurringEvents.forEach((event: any) => result.push(mapToSearchEventResult(event)))
+      nonRecurringEvents.forEach((event: any) => result.push(this.mapToSearchEventResult(event)))
     } catch (er) {
       this.deps.logger.log(`[graph.searchEvents]: Error while querying: ${er}`)
+    }
+    result.sort((a, b) => a.start.getTime() - b.start.getTime())
+    return result
+  }
+
+  async getNextMeetings(): Promise<SearchEventResult[]> {
+    const result: SearchEventResult[] = []
+    const from = new Date()
+    const to = new Date()
+    to.setDate(to.getDate() + 7)
+
+    try {
+      const events = await this.client
+        .api("/me/calendarView")
+        .query({
+          startDateTime: from.toISOString(),
+          endDateTime: to.toISOString()
+        })
+        .select(["id", "subject", "start", "end", "onlineMeeting", "webLink", "recurrence"])
+        .orderby("start/dateTime")
+        .top(5)
+        .get()
+
+      events.value.forEach((event: any) => result.push(this.mapToSearchEventResult(event)))
+    } catch (er) {
+      this.deps.logger.log(`[graph.next meeting]: Error while querying: ${er}`)
     }
     result.sort((a, b) => a.start.getTime() - b.start.getTime())
     return result
