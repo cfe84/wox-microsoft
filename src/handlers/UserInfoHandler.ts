@@ -1,3 +1,4 @@
+import { ConfigurationStore } from "../ConfigurationStore";
 import { consts } from "../consts";
 import { Graph } from "../Graph";
 import { IHandler, IHandlerSettings } from "../IHandler";
@@ -9,6 +10,7 @@ const prefix = "userinfo"
 
 export interface UserInfoDependencies {
   graph: Graph
+  configurationStore: ConfigurationStore
 }
 
 export class UserInfoHandler implements IHandler {
@@ -28,6 +30,7 @@ export class UserInfoHandler implements IHandler {
       Subtitle: user.userPrincipal,
       Title: user.displayName
     }
+    this.deps.configurationStore.UserId = user.id
     return [currentUser]
   }
 

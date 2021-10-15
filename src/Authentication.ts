@@ -17,7 +17,7 @@ interface LoginResult {
 }
 
 const OAUTH_AUTHORITY = "https://login.microsoftonline.com/common/"
-const OAUTH_SCOPES = ["offline_access", "user.read", "Calendars.Read"]
+const OAUTH_SCOPES = ["offline_access", "user.read", "Calendars.Read", "Contacts.Read", "People.Read", "Chat.ReadWrite"]
 const OAUTH_REDIRECT_URI = "http://localhost:8123"
 const LOGIN_CALLBACK_PORT = 8123
 

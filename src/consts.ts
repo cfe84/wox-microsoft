@@ -6,5 +6,7 @@ export const consts = {
     microsoft: path.join("images", "msft.png"),
     outlook: path.join("images", "outlook.png"),
     calendar: path.join("images", "calendar.png"),
+    people: path.join("images", "people"),
+    chat: path.join("images", "chat")
   }
 }

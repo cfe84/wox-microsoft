@@ -8,7 +8,7 @@ import { Graph } from "./Graph";
 const logger = new Logger(true);
 const configurationStore = new ConfigurationStore()
 const authentication = new Authentication({ configurationStore, logger })
-const graph = new Graph({ authentication, logger })
+const graph = new Graph({ authentication, logger, configurationStore })
 const handler = new WoxTeamsHandler({ logger, configurationStore, authentication, graph });
 const processor = new WoxQueryProcessor(handler, logger);
 processor.processFromCommandLineAsync(process.argv)
